@@ -34,22 +34,22 @@ function handleError() {
 
 app.get('/location', (request, response) => {
   let queryData = request.query.data;
-  try {
-    const data = require('./data/geo.json');
-    // console.log(data.address_component);
-    let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
-    response.send(city);
-  } catch (error) {
-    response.send(handleError);
-  }
-
-  // let geoCodeURL = `blablabla&key=${process.env.GOOGLE_API}`;
-  // superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
-  //   console.log(googleAPIresponse.body);
-  //   let data = googleAPIresponse.body;
+  // try {
+  //   const data = require('./data/geo.json');
+  //   // console.log(data.address_component);
   //   let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
   //   response.send(city);
-  // });
+  // } catch (error) {
+  //   response.send(handleError);
+  // }
+
+  let geoCodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${queryData}&key=${process.env.GOOGLE_API}`;
+  superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
+    console.log(googleAPIresponse.body);
+    let data = googleAPIresponse.body;
+    let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
+    response.send(city);
+  });
 
 });
 
