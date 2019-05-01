@@ -36,14 +36,6 @@ let city;
 
 app.get('/location', (request, response) => {
   let queryData = request.query.data;
-  // try {
-  //   const data = require('./data/geo.json');
-  //   // console.log(data.address_component);
-  //   let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
-  //   response.send(city);
-  // } catch (error) {
-  //   response.send(handleError);
-  // }
 
   let geoCodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${queryData}&key=${process.env.GOOGLE_API}`;
   superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
@@ -52,49 +44,40 @@ app.get('/location', (request, response) => {
     console.log(data);
     city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
     response.send(city);
+
+    if (err) {
+      handleError();
+    }
+
   });
 
 });
 
 
 app.get('/weather', (request, response) => {
-  // try {
-  //   const data = require('./data/darksky.json');
-  //   let daily = Object.entries(data)[6];
-  //   let dailyData = daily[1].data;//hourly day forecast
 
-  //   let myForecast = [];
-  //   dailyData.forEach(element => {
-  //     let date = new Date(element.time * 1000).toDateString();
-  //     let temp = new Forecast(element.summary, date);
-  //     myForecast.push(temp);
-  //   });
-  //   console.log(myForecast);
-  //   response.send(myForecast);
+  try {
+    let geoCodeURL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${city.latitude},${city.longitude}`;
+    superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
+      console.log('WEATHER: ', googleAPIresponse.body);
+      let data = googleAPIresponse.body;
+      console.log(data);
 
-  // } catch (error) {
-  //   response.send(handleError);
-  // }
+      let daily = Object.entries(data)[6];
+      console.log(daily);
+      let dailyData = daily[1].data;//hourly day forecast
 
+      let myForecast = dailyData.map(element => {
+        let date = new Date(element.time * 1000).toDateString();
+        return new Forecast(element.summary, date);
+      });
+      response.send(myForecast);
 
-
-  let geoCodeURL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${city.latitude},${city.longitude}`;
-  superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
-    console.log('WEATHER: ',googleAPIresponse.body);
-    let data = googleAPIresponse.body;
-    console.log(data);
-
-    let daily = Object.entries(data)[6];
-    console.log(daily);
-    let dailyData = daily[1].data;//hourly day forecast
-
-    let myForecast = dailyData.map(element => {
-      let date = new Date(element.time * 1000).toDateString();
-      return new Forecast(element.summary, date);
     });
-    response.send(myForecast);
 
-  });
+  } catch (error) {
+    response.send(error);
+  }
 
 });
 
