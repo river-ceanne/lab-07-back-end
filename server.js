@@ -32,6 +32,8 @@ function handleError() {
   return { 'status': 500, 'responseText': 'Sorry, something went wrong' };
 }
 
+let city;
+
 app.get('/location', (request, response) => {
   let queryData = request.query.data;
   // try {
@@ -47,7 +49,8 @@ app.get('/location', (request, response) => {
   superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
     console.log(googleAPIresponse.body);
     let data = googleAPIresponse.body;
-    let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
+    console.log(data);
+    city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
     response.send(city);
   });
 
@@ -55,9 +58,34 @@ app.get('/location', (request, response) => {
 
 
 app.get('/weather', (request, response) => {
-  try {
-    const data = require('./data/darksky.json');
+  // try {
+  //   const data = require('./data/darksky.json');
+  //   let daily = Object.entries(data)[6];
+  //   let dailyData = daily[1].data;//hourly day forecast
+
+  //   let myForecast = [];
+  //   dailyData.forEach(element => {
+  //     let date = new Date(element.time * 1000).toDateString();
+  //     let temp = new Forecast(element.summary, date);
+  //     myForecast.push(temp);
+  //   });
+  //   console.log(myForecast);
+  //   response.send(myForecast);
+
+  // } catch (error) {
+  //   response.send(handleError);
+  // }
+
+
+
+  let geoCodeURL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${city.latitude},${city.longitude}`;
+  superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
+    console.log('WEATHER: ',googleAPIresponse.body);
+    let data = googleAPIresponse.body;
+    console.log(data);
+
     let daily = Object.entries(data)[6];
+    console.log(daily);
     let dailyData = daily[1].data;//hourly day forecast
 
     let myForecast = [];
@@ -69,11 +97,7 @@ app.get('/weather', (request, response) => {
     console.log(myForecast);
     response.send(myForecast);
 
-  } catch (error) {
-    response.send(handleError);
-  }
-
-
+  });
 
 });
 
