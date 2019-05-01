@@ -1,0 +1,83 @@
+'use strict';
+
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const superagent = require('superagent');
+
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+app.use(cors());
+app.use(express.static('./public'));
+
+app.get('/', (request, response) => {
+  response.send('server works');
+});
+
+function GEOloc(query, fmtQ, lat, long) {
+  this.search_query = query;
+  this.formatted_query = fmtQ;
+  this.latitude = lat;
+  this.longitude = long;
+}
+
+function Forecast(forecast, time) {
+  this.forecast = forecast;
+  this.time = time;
+}
+
+function handleError() {
+  return { 'status': 500, 'responseText': 'Sorry, something went wrong' };
+}
+
+app.get('/location', (request, response) => {
+  let queryData = request.query.data;
+  try {
+    const data = require('./data/geo.json');
+    // console.log(data.address_component);
+    let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
+    response.send(city);
+  } catch (error) {
+    response.send(handleError);
+  }
+
+  // let geoCodeURL = `blablabla&key=${process.env.GOOGLE_API}`;
+  // superagent.get(geoCodeURL).end((err, googleAPIresponse) => {
+  //   console.log(googleAPIresponse.body);
+  //   let data = googleAPIresponse.body;
+  //   let city = new GEOloc(queryData, data.results[0].formatted_address, data.results[0].geometry.location.lat, data.results[0].geometry.location.lng);
+  //   response.send(city);
+  // });
+
+});
+
+
+app.get('/weather', (request, response) => {
+  try {
+    const data = require('./data/darksky.json');
+    let daily = Object.entries(data)[6];
+    let dailyData = daily[1].data;//hourly day forecast
+
+    let myForecast = [];
+    dailyData.forEach(element => {
+      let date = new Date(element.time * 1000).toDateString();
+      let temp = new Forecast(element.summary, date);
+      myForecast.push(temp);
+    });
+    console.log(myForecast);
+    response.send(myForecast);
+
+  } catch (error) {
+    response.send(handleError);
+  }
+
+
+
+});
+
+
+app.use('*', (request, response) => response.send('Sorry, that route does not exist.'))
+
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
