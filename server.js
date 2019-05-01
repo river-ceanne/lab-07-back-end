@@ -88,13 +88,10 @@ app.get('/weather', (request, response) => {
     console.log(daily);
     let dailyData = daily[1].data;//hourly day forecast
 
-    let myForecast = [];
-    dailyData.forEach(element => {
+    let myForecast = dailyData.map(element => {
       let date = new Date(element.time * 1000).toDateString();
-      let temp = new Forecast(element.summary, date);
-      myForecast.push(temp);
+      return new Forecast(element.summary, date);
     });
-    console.log(myForecast);
     response.send(myForecast);
 
   });
