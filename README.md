@@ -1,4 +1,4 @@
-# lab-06-back-end
+# lab-07-back-end
 backEnd
 
 
@@ -32,7 +32,7 @@ HTMl, CSS, vanilla JS and jQuery
          
          12:00 finished the error handling . Deployed link to heroku 
          
-# lab6-backend
+# lab7-backend
 
 Number and name of feature: Repository Set up
 
