@@ -6,8 +6,18 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
+// const pg = require('pg');
+
+// const client = new pg.Client('http://postgres...blablabla/city-explorer');
+// client.connect();
+//inside the repo - create a schema.sql file which creates the table for
+// locations (latitiude DECIMAL, longitude DECIMAL, search_query and
+// formatted_query as VARCHAR(255)) etc.....
+
+//commands: heroku pg:psql < schema.sql
 
 const app = express();
+
 //PORT for the sever to operate
 const PORT = process.env.PORT || 3000;
 app.use(cors());
@@ -16,6 +26,9 @@ app.use(express.static('./public'));
 app.get('/', (request, response) => {
   response.send('server works');
 });
+
+
+// **********CONSTRUCTOR FUNCS*******************//
 //constructor for Location
 function GEOloc(query, fmtQ, lat, long) {
   this.search_query = query;
@@ -29,12 +42,14 @@ function Forecast(forecast, time) {
   this.time = time;
 }
 //constructor for events
-function Event(link,name,event_date,summary){
+function Event(link, name, event_date, summary) {
   this.link = link;
   this.name = name;
   this.event_date = event_date;
   this.summary = summary;
 }
+
+// **************FUNCTIONS*********************//
 //Error Handler
 function handleError() {
   return { 'status': 500, 'responseText': 'Sorry, something went wrong' };
@@ -86,25 +101,25 @@ app.get('/weather', (request, response) => {
 });
 
 //EventBrite
-app.get('/events',(request,response)=>{
-  try{
+app.get('/events', (request, response) => {
+  try {
     let geoCodeURL = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${city.longitude}&location.latitude=${city.latitude}&expand=venue`;
 
     superagent.get(geoCodeURL).set('Authorization', `Bearer ${process.env.EVENTBRITE_API_KEY}`)
       .end((err, googleAPIresponse) => {
         let events = googleAPIresponse.body.events;
-        let resultEvents = events.map(value=>{
+        let resultEvents = events.map(value => {
           let name = value.name.text;
           let link = value.url;
           let eventDate = new Date(value.start.local).toDateString();
           let summary = value.summary;
-          return new Event(link,name,eventDate,summary);
+          return new Event(link, name, eventDate, summary);
         });
         console.log(resultEvents);
         response.send(resultEvents);
       });
   }
-  catch(error){
+  catch (error) {
     response.send(error);
   }
 });
